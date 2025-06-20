@@ -127,7 +127,7 @@ export default function AdminPage() {
       const saveData = {
         title: scriptForm.title.trim(),
         content: scriptForm.content.trim(),
-        module_id: scriptForm.module_id || undefined,
+        module_id: scriptForm.module_id || null,
         tags: scriptForm.tags || []
       }
       
