@@ -265,16 +265,32 @@ yarn dev
 4. 推送到分支 (`git push origin feature/AmazingFeature`)
 5. 开启 Pull Request
 
+## 📚 开发指南
+
+**🎯 [完整开发经验总结](DEVELOPMENT_GUIDE.md)**
+
+本项目提供了完整的 Next.js + Tailwind CSS + Supabase + Vercel 技术栈开发经验总结，包含：
+
+- 🏗 **技术架构设计** - 完整的架构模式和最佳实践
+- 📦 **可复用代码模块** - 经过验证的组件和工具函数
+- 🎨 **设计系统** - Tailwind CSS 设计规范和响应式方案
+- 🗄 **数据库设计模式** - Supabase 数据库优化策略
+- 🚀 **部署流程** - Vercel 部署和性能优化
+- 📱 **移动端适配** - 完整的移动端开发经验
+- 🔒 **安全最佳实践** - 环境变量和权限控制
+- 🎯 **开发检查清单** - 下次项目的完整指南
+
+> 💡 这份指南是基于本项目的成功经验提取，可直接用于下次开发！
+
 ## 📄 许可证
 
-本项目采用 MIT 许可证 - 查看 [LICENSE](LICENSE) 文件了解详情。
+MIT License - 详见 [LICENSE](LICENSE) 文件
 
 ## 📞 支持
 
-如有问题或建议，请:
-- 创建 Issue
-- 发送邮件到 [your-email@example.com]
-- 查看文档和 FAQ
+如有问题或建议，请通过以下方式联系：
+- 邮箱：your-email@example.com
+- GitHub Issues：[提交问题](https://github.com/yourusername/xhs-huashu-github/issues)
 
 ---
 
