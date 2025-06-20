@@ -75,7 +75,6 @@ export default function ScriptCard({ script, onView }: ScriptCardProps) {
                 p-2 rounded-xl bg-gray-100 hover:bg-gray-200
                 text-gray-600 hover:text-gray-800
                 transition-all duration-200
-                opacity-0 group-hover:opacity-100
               "
             >
               <Eye className="w-4 h-4" />
@@ -87,16 +86,12 @@ export default function ScriptCard({ script, onView }: ScriptCardProps) {
             text={script.content} 
             scriptId={script.id}
             showText={false}
-            className="opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+            className="transition-opacity duration-200"
           />
         </div>
       </div>
 
-      {/* 悬停时的复制快捷方式 */}
-      <div className="
-        absolute inset-0 bg-blue-500/5 rounded-2xl opacity-0 group-hover:opacity-100
-        transition-opacity duration-300 pointer-events-none
-      " />
+
     </div>
   )
 }
