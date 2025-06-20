@@ -8,7 +8,7 @@ import Link from 'next/link'
 interface ScriptForm {
   title: string
   content: string
-  module_id: string
+  module_id: string | null
   tags: string[]
 }
 
@@ -36,7 +36,7 @@ export default function AdminPage() {
   const [scriptForm, setScriptForm] = useState<ScriptForm>({
     title: '',
     content: '',
-    module_id: '',
+    module_id: null,
     tags: []
   })
   const [newTag, setNewTag] = useState('')
@@ -92,7 +92,7 @@ export default function AdminPage() {
     setScriptForm({
       title: '',
       content: '',
-      module_id: '',
+      module_id: null,
       tags: []
     })
     setShowScriptForm(true)
@@ -103,7 +103,7 @@ export default function AdminPage() {
     setScriptForm({
       title: script.title,
       content: script.content,
-      module_id: script.module_id || '',
+      module_id: script.module_id,
       tags: script.tags || []
     })
     setShowScriptForm(true)
@@ -127,7 +127,7 @@ export default function AdminPage() {
       const saveData = {
         title: scriptForm.title.trim(),
         content: scriptForm.content.trim(),
-        module_id: scriptForm.module_id || null,
+        module_id: scriptForm.module_id || undefined,
         tags: scriptForm.tags || []
       }
       
@@ -518,8 +518,8 @@ export default function AdminPage() {
                   所属模块
                 </label>
                 <select
-                  value={scriptForm.module_id}
-                  onChange={(e) => setScriptForm({ ...scriptForm, module_id: e.target.value })}
+                  value={scriptForm.module_id || ''}
+                  onChange={(e) => setScriptForm({ ...scriptForm, module_id: e.target.value || null })}
                   className="w-full px-3 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 >
                   <option value="">未分类</option>

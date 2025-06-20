@@ -9,6 +9,7 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey)
 export interface Module {
   id: string
   name: string
+  description?: string  // 添加 description 字段
   parent_id: string | null
   sort_order: number
   created_at: string
@@ -18,7 +19,7 @@ export interface Script {
   id: string
   title: string
   content: string
-  module_id: string
+  module_id: string | null  // 修改为允许 null
   tags: string[]
   copy_count: number
   created_at: string
@@ -31,13 +32,21 @@ export interface Admin {
   password_hash: string
 }
 
+// ModuleService 类型定义
+interface ModuleService {
+  getModules(): Promise<Module[]>
+  createModule(module: Omit<Module, 'id' | 'created_at'>): Promise<Module>
+  updateModule(id: string, updates: Partial<Module>): Promise<Module>
+  deleteModule(id: string): Promise<void>
+}
+
 // ScriptService 类型定义
 interface ScriptService {
   getScripts(): Promise<Script[]>
   getScriptsByModule(moduleId: string): Promise<Script[]>
   incrementCopyCount(scriptId: string): Promise<void>
   createScript(script: Omit<Script, 'id' | 'created_at' | 'copy_count' | 'module'>): Promise<Script>
-  updateScript(id: string, updates: Partial<Omit<Script, 'id' | 'created_at' | 'module'>>): Promise<Script>
+  updateScript(id: string, updates: Partial<Omit<Script, 'id' | 'created_at' | 'copy_count' | 'module'>>): Promise<Script>
   deleteScript(id: string): Promise<void>
 }
 
