@@ -149,10 +149,11 @@ export default function AdminPage() {
     } catch (err) {
       console.error('保存话术失败，详细错误:', err)
       console.error('错误类型:', typeof err)
-      console.error('错误消息:', err?.message)
-      console.error('错误详情:', err?.details)
-      console.error('错误代码:', err?.code)
-      setError(`保存话术失败: ${err?.message || '未知错误'}`)
+      const errorMessage = err instanceof Error ? err.message : (err as any)?.message || '未知错误'
+      console.error('错误消息:', errorMessage)
+      console.error('错误详情:', (err as any)?.details)
+      console.error('错误代码:', (err as any)?.code)
+      setError(`保存话术失败: ${errorMessage}`)
     }
   }
 
