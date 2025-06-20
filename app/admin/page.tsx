@@ -16,6 +16,7 @@ interface ModuleForm {
   name: string
   description: string
   parent_id: string | null
+  sort_order: number
 }
 
 export default function AdminPage() {
@@ -47,7 +48,8 @@ export default function AdminPage() {
   const [moduleForm, setModuleForm] = useState<ModuleForm>({
     name: '',
     description: '',
-    parent_id: null
+    parent_id: null,
+    sort_order: 0
   })
 
   useEffect(() => {
@@ -192,7 +194,8 @@ export default function AdminPage() {
     setModuleForm({
       name: '',
       description: '',
-      parent_id: null
+      parent_id: null,
+      sort_order: modules.length
     })
     setShowModuleForm(true)
   }
@@ -202,7 +205,8 @@ export default function AdminPage() {
     setModuleForm({
       name: module.name,
       description: module.description || '',
-      parent_id: module.parent_id
+      parent_id: module.parent_id,
+      sort_order: module.sort_order
     })
     setShowModuleForm(true)
   }
