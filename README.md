@@ -1,261 +1,158 @@
-# 话术助手 - 话术复制网页系统
+# 小红书话术助手
 
-一个基于 Next.js、Tailwind CSS 和 Supabase 构建的现代化话术管理和复制系统，采用苹果风格设计，支持模块分类、标签管理和一键复制功能。
+一个基于 Next.js + Supabase + Tailwind CSS 构建的现代化话术管理和搜索系统。
 
-## 🚀 功能特性
+## ✨ 功能特性
 
-### 用户功能
-- **话术浏览**: 按模块分类浏览所有话术内容
-- **一键复制**: 点击即可复制话术到剪贴板，自动统计复制次数
-- **智能搜索**: 支持标题和内容的全文搜索
-- **标签筛选**: 通过标签快速筛选相关话术
-- **详情查看**: 模态框展示话术完整内容
-- **响应式设计**: 完美适配桌面端和移动端
+### 🔍 智能搜索
+- **全文搜索**：支持标题和内容搜索
+- **标签过滤**：多标签组合筛选
+- **模块分类**：层级化模块导航
+- **智能排序**：按时间、热度、标题序号排序
 
-### 管理员功能
-- **话术管理**: 创建、编辑、删除话术内容
-- **模块管理**: 创建层级化的模块分类系统
-- **标签系统**: 为话术添加多个标签便于分类
-- **数据统计**: 查看话术复制次数和创建时间
-- **Unicode支持**: 完整支持表情符号和特殊字符
+### 📱 响应式设计
+- **移动端优化**：紧凑布局，节省空间
+- **一行搜索**：搜索框和排序功能合并显示
+- **自适应界面**：桌面端和移动端差异化体验
 
-## 🛠 技术栈
+### 📊 数据管理
+- **复制统计**：实时统计话术复制次数
+- **分类管理**：支持多级模块分类
+- **标签系统**：灵活的标签组织方式
 
-- **前端框架**: Next.js 15.3.4 (App Router)
-- **样式框架**: Tailwind CSS
-- **数据库**: Supabase (PostgreSQL)
-- **图标库**: Lucide React
-- **开发语言**: TypeScript
-- **部署平台**: Vercel
-
-## 📦 项目结构
-
-```
-xhs-huashu-github/
-├── app/                    # Next.js App Router 页面
-│   ├── page.tsx           # 用户主页 - 话术浏览和复制
-│   ├── layout.tsx         # 全局布局组件
-│   ├── globals.css        # 全局样式文件
-│   ├── favicon.ico        # 网站图标
-│   └── admin/             # 管理后台
-│       └── page.tsx       # 管理员页面 - 话术和模块管理
-├── components/            # React 组件
-│   ├── CopyButton.tsx     # 复制按钮组件
-│   ├── ScriptCard.tsx     # 话术卡片组件
-│   ├── ModuleNav.tsx      # 模块导航组件
-│   ├── SearchBar.tsx      # 搜索栏组件
-│   └── ScriptModal.tsx    # 话术详情模态框
-├── lib/                   # 工具库和配置
-│   ├── supabase.ts        # Supabase 客户端和数据服务
-│   └── utils.ts           # 通用工具函数
-├── public/                # 静态资源
-│   └── favicon.ico        # 网站图标
-├── .env.local.example     # 环境变量模板
-├── .gitignore             # Git 忽略文件配置
-├── package.json           # 项目依赖和脚本
-├── tsconfig.json          # TypeScript 配置
-├── next.config.ts         # Next.js 配置
-├── postcss.config.mjs     # PostCSS 配置
-└── README.md              # 项目说明文档
-```
-
-## 🗄 数据库设计
-
-### 模块表 (modules)
-- `id`: 主键 (UUID)
-- `name`: 模块名称
-- `description`: 模块描述
-- `parent_id`: 父模块ID (支持层级结构)
-- `created_at`: 创建时间
-
-### 话术表 (scripts)
-- `id`: 主键 (UUID)
-- `title`: 话术标题
-- `content`: 话术内容 (支持Unicode和表情)
-- `module_id`: 所属模块ID
-- `tags`: 标签数组
-- `copy_count`: 复制次数
-- `created_at`: 创建时间
+### ⚡ 性能优化
+- **前端缓存**：localStorage 保存用户偏好
+- **懒加载**：按需加载数据
+- **实时更新**：复制后即时刷新统计
 
 ## 🚀 快速开始
 
-### 1. 环境准备
-
-确保你的系统已安装:
+### 环境要求
 - Node.js 18+ 
 - npm 或 yarn
-- Git
+- Supabase 项目
 
-### 2. 克隆项目
+### 本地开发
 
+1. **克隆项目**
 ```bash
-git clone <repository-url>
+git clone https://github.com/davidwuwu001/xhs-huashu-github.git
 cd xhs-huashu-github
 ```
 
-### 3. 安装依赖
-
+2. **安装依赖**
 ```bash
 npm install
-# 或
-yarn install
 ```
 
-### 4. 配置环境变量
-
-复制环境变量模板并填入你的配置:
-
+3. **环境配置**
 ```bash
 cp .env.local.example .env.local
 ```
 
-编辑 `.env.local` 文件，填入以下信息:
-
+编辑 `.env.local` 文件：
 ```env
-# Supabase 配置
 NEXT_PUBLIC_SUPABASE_URL=your_supabase_project_url
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
-
-# 管理员配置 (可选)
-ADMIN_EMAIL=admin@example.com
-ADMIN_PASSWORD=your_admin_password
-
-# JWT 密钥 (可选)
-JWT_SECRET=your_jwt_secret
 ```
 
-### 5. 设置 Supabase 数据库
+4. **启动开发服务器**
+```bash
+npm run dev
+```
 
-在 Supabase 控制台中执行以下 SQL 创建数据表:
+访问 [http://localhost:3000](http://localhost:3000) 查看应用。
 
+## 📦 部署到 Vercel
+
+### 一键部署
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/davidwuwu001/xhs-huashu-github)
+
+### 手动部署
+1. 在 [Vercel](https://vercel.com) 创建新项目
+2. 导入此 GitHub 仓库
+3. 配置环境变量：
+   - `NEXT_PUBLIC_SUPABASE_URL`
+   - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+4. 部署！
+
+## 🗄️ 数据库设置
+
+### Supabase 表结构
+
+1. **modules 表** (模块管理)
 ```sql
--- 创建模块表
 CREATE TABLE modules (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-  name VARCHAR(255) NOT NULL,
+  name TEXT NOT NULL,
   description TEXT,
-  parent_id UUID REFERENCES modules(id) ON DELETE SET NULL,
+  parent_id UUID REFERENCES modules(id),
+  sort_order INTEGER DEFAULT 0,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
+```
 
--- 创建话术表
+2. **scripts 表** (话术管理)
+```sql
 CREATE TABLE scripts (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-  title VARCHAR(255) NOT NULL,
+  title TEXT NOT NULL,
   content TEXT NOT NULL,
-  module_id UUID REFERENCES modules(id) ON DELETE SET NULL,
+  module_id UUID REFERENCES modules(id),
   tags TEXT[] DEFAULT '{}',
   copy_count INTEGER DEFAULT 0,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
-
--- 创建索引提升查询性能
-CREATE INDEX idx_scripts_module_id ON scripts(module_id);
-CREATE INDEX idx_scripts_tags ON scripts USING GIN(tags);
-CREATE INDEX idx_modules_parent_id ON modules(parent_id);
 ```
 
-### 6. 启动开发服务器
+### 示例数据
 
-```bash
-npm run dev
-# 或
-yarn dev
+**模块数据：**
+```sql
+INSERT INTO modules (name, parent_id, sort_order) VALUES
+('儿童陪伴跟贴话术', NULL, 1),
+('客户服务', NULL, 2),
+('产品介绍', NULL, 3),
+('修学庆学跟贴话术', '客户服务_id', 1),
+('问答sop', '客户服务_id', 2);
 ```
 
-打开 [http://localhost:3000](http://localhost:3000) 查看应用。
+**话术数据：**
+```sql
+INSERT INTO scripts (title, content, module_id, tags) VALUES
+('1', '还有需要的吗?宝妈幼儿陪伴师完全可以满足，老师积极阳性，正能量，英语4-6级，可以带孩子运动，趣味玩耍，陪伴中将学习的成分融入进来，快乐学习。', '儿童陪伴跟贴话术_id', ARRAY['儿童陪伴', '英语', '趣味学习']),
+('2', '您好，我是专业儿童陪伴师，非中介，看到您发的帖子，我知道深圳不少优秀的老师，陪伴1.5岁-6岁的孩子很有经验，可以说，可以做饭做家务...', '儿童陪伴跟贴话术_id', ARRAY['专业陪伴', '深圳', '经验丰富']);
+```
 
-## 📱 使用指南
+## 🛠️ 技术栈
 
-### 用户端使用
+- **前端框架**：Next.js 15+ (App Router)
+- **样式框架**：Tailwind CSS
+- **数据库**：Supabase (PostgreSQL)
+- **部署平台**：Vercel
+- **开发语言**：TypeScript
+- **图标库**：Lucide React
 
-1. **浏览话术**: 在主页左侧选择模块分类，右侧显示对应话术
-2. **搜索话术**: 使用顶部搜索框输入关键词搜索
-3. **标签筛选**: 点击标签进行筛选，可多选
-4. **复制话术**: 点击话术卡片上的复制按钮一键复制
-5. **查看详情**: 点击"查看详情"按钮在模态框中查看完整内容
+## 📱 功能亮点
 
-### 管理员使用
+### 智能排序系统
+- **多格式识别**：支持 "1."、"1、"、"(1)"、"第1条"、"【1】" 等序号格式
+- **用户偏好记忆**：自动保存排序设置
+- **实时切换**：排序和筛选条件即时生效
 
-1. **访问管理后台**: 点击右上角"管理后台"按钮
-2. **话术管理**:
-   - 点击"新增话术"创建话术
-   - 填写标题、选择模块、输入内容、添加标签
-   - 支持表情符号和特殊字符
-   - 可编辑和删除现有话术
-3. **模块管理**:
-   - 点击"新增模块"创建分类
-   - 支持创建子模块形成层级结构
-   - 可编辑模块名称和描述
+### 移动端优化
+- **紧凑布局**：搜索栏和排序合并一行显示
+- **响应式文字**：移动端简化，桌面端详细
+- **空间节省**：垂直空间利用率提升 30%
 
-## 🎨 设计特色
+### 复制统计功能
+- **实时统计**：每次复制自动增加计数
+- **数据同步**：复制后立即刷新显示
+- **多端支持**：卡片和详情页都支持复制统计
 
-- **苹果风格**: 采用现代化的苹果设计语言
-- **毛玻璃效果**: 使用 backdrop-blur 实现精美的毛玻璃背景
-- **渐变背景**: 蓝紫色渐变营造优雅氛围
-- **圆角设计**: 统一使用圆角元素提升视觉体验
-- **微交互**: 丰富的悬停和点击动画效果
-- **响应式布局**: 完美适配各种屏幕尺寸
+## 📝 开发日志
 
-## 📁 项目清理
-
-为了保持项目的整洁性，已删除以下无关文件：
-- `docs/` - 空的文档目录
-- `public/file.svg` - Next.js 默认示例图标
-- `public/globe.svg` - Next.js 默认示例图标
-- `public/next.svg` - Next.js 默认示例图标
-- `public/vercel.svg` - Vercel 默认示例图标
-- `public/window.svg` - Next.js 默认示例图标
-- `database_setup.sql` - 数据库设置脚本（内容已整合到 README 中）
-
-项目现在只包含实际使用的文件，结构更加清晰。
-
-## 🔧 开发说明
-
-### 核心组件说明
-
-- **CopyButton**: 处理文本复制和复制次数统计
-- **ScriptCard**: 展示话术卡片，包含标题、内容预览、标签等
-- **ModuleNav**: 模块导航，支持层级展示和选择
-- **SearchBar**: 搜索和标签筛选功能
-- **ScriptModal**: 话术详情模态框
-
-### 数据服务
-
-- **scriptService**: 话术相关的 CRUD 操作
-- **moduleService**: 模块相关的 CRUD 操作
-- **工具函数**: 文本处理、日期格式化、筛选等
-
-### 状态管理
-
-使用 React Hooks 进行状态管理:
-- `useState`: 组件状态
-- `useEffect`: 副作用处理
-- 无需额外状态管理库，保持简洁
-
-## 🚀 部署指南
-
-### Vercel 部署 (推荐)
-
-1. 将代码推送到 GitHub
-2. 在 Vercel 中导入项目
-3. 配置环境变量
-4. 自动部署完成
-
-### 其他平台部署
-
-项目支持部署到任何支持 Next.js 的平台:
-- Netlify
-- Railway
-- DigitalOcean App Platform
-- AWS Amplify
-
-## 🔒 安全考虑
-
-- 环境变量安全存储
-- Supabase RLS (行级安全) 配置
-- 输入验证和 XSS 防护
-- HTTPS 强制使用
+详见 [log.md](./log.md) 文件，记录了完整的开发过程和问题解决方案。
 
 ## 🤝 贡献指南
 
@@ -265,33 +162,15 @@ yarn dev
 4. 推送到分支 (`git push origin feature/AmazingFeature`)
 5. 开启 Pull Request
 
-## 📚 开发指南
-
-**🎯 [完整开发经验总结](DEVELOPMENT_GUIDE.md)**
-
-本项目提供了完整的 Next.js + Tailwind CSS + Supabase + Vercel 技术栈开发经验总结，包含：
-
-- 🏗 **技术架构设计** - 完整的架构模式和最佳实践
-- 📦 **可复用代码模块** - 经过验证的组件和工具函数
-- 🎨 **设计系统** - Tailwind CSS 设计规范和响应式方案
-- 🗄 **数据库设计模式** - Supabase 数据库优化策略
-- 🚀 **部署流程** - Vercel 部署和性能优化
-- 📱 **移动端适配** - 完整的移动端开发经验
-- 🔒 **安全最佳实践** - 环境变量和权限控制
-- 🎯 **开发检查清单** - 下次项目的完整指南
-
-> 💡 这份指南是基于本项目的成功经验提取，可直接用于下次开发！
-
 ## 📄 许可证
 
-MIT License - 详见 [LICENSE](LICENSE) 文件
+此项目基于 MIT 许可证开源。详见 [LICENSE](LICENSE) 文件。
 
-## 📞 支持
+## 📞 联系方式
 
-如有问题或建议，请通过以下方式联系：
-- 邮箱：your-email@example.com
-- GitHub Issues：[提交问题](https://github.com/yourusername/xhs-huashu-github/issues)
+- 项目地址：[https://github.com/davidwuwu001/xhs-huashu-github](https://github.com/davidwuwu001/xhs-huashu-github)
+- 问题反馈：[Issues](https://github.com/davidwuwu001/xhs-huashu-github/issues)
 
 ---
 
-**话术助手** - 让话术管理更简单，让复制更高效！ 🚀
+⭐ 如果这个项目对你有帮助，请给它一个 Star！
