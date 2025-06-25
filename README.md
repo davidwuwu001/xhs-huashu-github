@@ -69,12 +69,24 @@ npm run dev
 [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/davidwuwu001/xhs-huashu-github)
 
 ### 手动部署
-1. 在 [Vercel](https://vercel.com) 创建新项目
-2. 导入此 GitHub 仓库
-3. 配置环境变量：
-   - `NEXT_PUBLIC_SUPABASE_URL`
-   - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
-4. 部署！
+1. **在 Vercel 创建新项目**
+   - 访问 [Vercel Dashboard](https://vercel.com/dashboard)
+   - 点击 "New Project"
+   - 导入此 GitHub 仓库
+
+2. **配置环境变量**
+   在 Vercel 项目设置的 Environment Variables 部分添加：
+   
+   **变量名**: `NEXT_PUBLIC_SUPABASE_URL`  
+   **值**: 你的 Supabase 项目 URL (形如 `https://xxxxxx.supabase.co`)
+   
+   **变量名**: `NEXT_PUBLIC_SUPABASE_ANON_KEY`  
+   **值**: 你的 Supabase 匿名密钥 (以 `eyJ` 开头的长字符串)
+
+   > 💡 **获取这些值**: 在 Supabase 项目仪表板 → Settings → API 中可以找到
+
+3. **部署**
+   配置完环境变量后，Vercel 会自动开始部署
 
 ## 🗄️ 数据库设置
 
