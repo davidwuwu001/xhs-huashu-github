@@ -83,10 +83,22 @@ export const scriptService: ScriptService = {
 
   // 增加复制次数
   async incrementCopyCount(scriptId: string) {
-    const { error } = await supabase
-      .rpc('increment_copy_count', { script_id: scriptId })
+    // 先获取当前的复制次数
+    const { data: currentData, error: fetchError } = await supabase
+      .from('scripts')
+      .select('copy_count')
+      .eq('id', scriptId)
+      .single()
     
-    if (error) throw error
+    if (fetchError) throw fetchError
+    
+    // 更新复制次数
+    const { error: updateError } = await supabase
+      .from('scripts')
+      .update({ copy_count: (currentData.copy_count || 0) + 1 })
+      .eq('id', scriptId)
+    
+    if (updateError) throw updateError
   },
 
   // 创建话术

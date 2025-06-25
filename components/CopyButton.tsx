@@ -10,13 +10,15 @@ interface CopyButtonProps {
   scriptId?: string
   className?: string
   showText?: boolean
+  onCopySuccess?: () => void
 }
 
 export default function CopyButton({ 
   text, 
   scriptId, 
   className = '', 
-  showText = true 
+  showText = true,
+  onCopySuccess
 }: CopyButtonProps) {
   const [copied, setCopied] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
@@ -37,9 +39,13 @@ export default function CopyButton({
         if (scriptId) {
           try {
             await scriptService.incrementCopyCount(scriptId)
+            // 调用成功回调，刷新数据
+            if (onCopySuccess) {
+              onCopySuccess()
+            }
           } catch (countError) {
-            // 复制计数失败不影响复制成功的状态，静默处理
-            // 可以在这里添加日志记录或其他处理逻辑
+            console.error('增加复制次数失败:', countError)
+            // 复制计数失败不影响复制成功的状态，但应该记录错误
           }
         }
         

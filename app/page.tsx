@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { Script, scriptService } from '@/lib/supabase'
-import { filterScripts } from '@/lib/utils'
+import { filterScripts, sortScripts } from '@/lib/utils'
 import ModuleNav from '@/components/ModuleNav'
 import SearchBar from '@/components/SearchBar'
 import ScriptCard from '@/components/ScriptCard'
@@ -20,6 +20,10 @@ export default function Home() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
+  // 排序相关状态 - 默认按热度排序
+  const [sortBy, setSortBy] = useState('copy_count')
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc')
+
   // 获取所有可用标签
   const availableTags = Array.from(
     new Set(scripts.flatMap(script => script.tags || []))
@@ -31,15 +35,27 @@ export default function Home() {
 
   useEffect(() => {
     applyFilters()
-  }, [scripts, selectedModuleId, searchTerm, selectedTags])
+  }, [scripts, selectedModuleId, searchTerm, selectedTags, sortBy, sortOrder])
+
+  // 从localStorage加载排序偏好
+  useEffect(() => {
+    const savedSortBy = localStorage.getItem('scriptSortBy')
+    const savedSortOrder = localStorage.getItem('scriptSortOrder')
+    
+    if (savedSortBy) {
+      setSortBy(savedSortBy)
+    }
+    if (savedSortOrder && (savedSortOrder === 'asc' || savedSortOrder === 'desc')) {
+      setSortOrder(savedSortOrder)
+    }
+  }, [])
 
   const loadScripts = async () => {
     try {
       setLoading(true)
       setError(null)
-      const data = selectedModuleId 
-        ? await scriptService.getScriptsByModule(selectedModuleId)
-        : await scriptService.getScripts()
+      // 总是加载全部数据，让前端处理过滤和排序
+      const data = await scriptService.getScripts()
       setScripts(data)
     } catch (err) {
       console.error('加载话术失败:', err)
@@ -60,23 +76,30 @@ export default function Home() {
     // 搜索和标签过滤
     filtered = filterScripts(filtered, searchTerm, selectedTags)
 
+    // 排序
+    filtered = sortScripts(filtered, sortBy, sortOrder)
+
     setFilteredScripts(filtered)
   }
 
-  const handleModuleSelect = async (moduleId: string | null) => {
+  const handleModuleSelect = (moduleId: string | null) => {
     setSelectedModuleId(moduleId)
-    setLoading(true)
-    try {
-      const data = moduleId 
-        ? await scriptService.getScriptsByModule(moduleId)
-        : await scriptService.getScripts()
-      setScripts(data)
-    } catch (err) {
-      console.error('加载话术失败:', err)
-      setError('加载话术失败，请稍后重试')
-    } finally {
-      setLoading(false)
-    }
+    // 不再重新加载数据，让applyFilters处理过滤
+  }
+
+  const handleSortChange = (newSortBy: string, newSortOrder: 'asc' | 'desc') => {
+    setSortBy(newSortBy)
+    setSortOrder(newSortOrder)
+    
+    // 保存到localStorage
+    localStorage.setItem('scriptSortBy', newSortBy)
+    localStorage.setItem('scriptSortOrder', newSortOrder)
+  }
+
+  // 复制成功后的回调函数
+  const handleCopySuccess = () => {
+    // 重新加载数据以显示更新后的复制次数
+    loadScripts()
   }
 
   return (
@@ -84,35 +107,35 @@ export default function Home() {
       {/* 头部 */}
       <header className="bg-white/80 backdrop-blur-sm border-b border-gray-100 sticky top-0 z-40">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
+          <div className="flex items-center justify-between h-14">
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center">
-                <Sparkles className="w-5 h-5 text-white" />
+              <div className="w-7 h-7 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center">
+                <Sparkles className="w-4 h-4 text-white" />
               </div>
-              <h1 className="text-xl font-bold text-gray-900">话术助手</h1>
+              <h1 className="text-lg font-bold text-gray-900">话术助手</h1>
             </div>
             
             <Link 
               href="/admin"
               className="
-                flex items-center gap-2 px-4 py-2 rounded-xl
-                bg-gray-100 hover:bg-gray-200 text-gray-700
+                flex items-center gap-2 px-3 py-1.5 rounded-xl
+                bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm
                 transition-all duration-200
               "
             >
               <Settings className="w-4 h-4" />
-              管理后台
+              <span className="hidden sm:inline">管理后台</span>
             </Link>
           </div>
         </div>
       </header>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
           {/* 左侧边栏 - 模块导航 */}
           <div className="lg:col-span-1">
-            <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-sm border border-gray-100 sticky top-24">
-              <h2 className="text-lg font-semibold text-gray-900 mb-4">模块分类</h2>
+            <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-4 shadow-sm border border-gray-100 sticky top-20">
+              <h2 className="text-base font-semibold text-gray-900 mb-3">模块分类</h2>
               <ModuleNav 
                 selectedModuleId={selectedModuleId || undefined}
                 onModuleSelect={handleModuleSelect}
@@ -123,7 +146,7 @@ export default function Home() {
           {/* 主内容区 */}
           <div className="lg:col-span-3">
             {/* 搜索栏 */}
-            <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-sm border border-gray-100 mb-6">
+            <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-4 shadow-sm border border-gray-100 mb-4">
               <SearchBar
                 searchTerm={searchTerm}
                 onSearchChange={setSearchTerm}
@@ -131,6 +154,9 @@ export default function Home() {
                 onTagsChange={setSelectedTags}
                 availableTags={availableTags}
                 placeholder="搜索话术标题或内容..."
+                sortBy={sortBy}
+                sortOrder={sortOrder}
+                onSortChange={handleSortChange}
               />
             </div>
 
@@ -146,7 +172,7 @@ export default function Home() {
                 </button>
               </div>
             ) : loading ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {[...Array(6)].map((_, i) => (
                   <div key={i} className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
                     <div className="animate-pulse">
@@ -168,7 +194,7 @@ export default function Home() {
             ) : filteredScripts.length > 0 ? (
               <>
                 {/* 结果统计 */}
-                <div className="mb-6">
+                <div className="mb-4">
                   <p className="text-sm text-gray-600">
                     找到 <span className="font-semibold text-gray-900">{filteredScripts.length}</span> 条话术
                     {selectedModuleId && (
@@ -180,12 +206,13 @@ export default function Home() {
                 </div>
 
                 {/* 话术网格 */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {filteredScripts.map((script) => (
                     <ScriptCard
                       key={script.id}
                       script={script}
                       onView={setSelectedScript}
+                      onCopySuccess={handleCopySuccess}
                     />
                   ))}
                 </div>
@@ -226,6 +253,7 @@ export default function Home() {
         script={selectedScript}
         isOpen={!!selectedScript}
         onClose={() => setSelectedScript(null)}
+        onCopySuccess={handleCopySuccess}
       />
     </div>
   )

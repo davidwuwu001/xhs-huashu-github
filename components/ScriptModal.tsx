@@ -10,9 +10,10 @@ interface ScriptModalProps {
   script: Script | null
   isOpen: boolean
   onClose: () => void
+  onCopySuccess?: () => void
 }
 
-export default function ScriptModal({ script, isOpen, onClose }: ScriptModalProps) {
+export default function ScriptModal({ script, isOpen, onClose, onCopySuccess }: ScriptModalProps) {
   // ESC键关闭模态框
   useEffect(() => {
     const handleEsc = (event: KeyboardEvent) => {
@@ -154,6 +155,7 @@ export default function ScriptModal({ script, isOpen, onClose }: ScriptModalProp
                 text={script.content} 
                 scriptId={script.id}
                 className="px-6 py-2"
+                onCopySuccess={onCopySuccess}
               />
             </div>
           </div>

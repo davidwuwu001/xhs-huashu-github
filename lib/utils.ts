@@ -74,6 +74,32 @@ export function generateTagColor(tag: string): string {
   return colors[Math.abs(hash) % colors.length]
 }
 
+// 从标题中提取序号
+export function extractTitleNumber(title: string): number {
+  // 匹配多种格式的序号：
+  // "1. 标题", "01. 标题", "1、标题", "第1条", "1）标题", "(1) 标题" 等
+  const patterns = [
+    /^(\d+)\.\s*/,        // "1. " 格式
+    /^(\d+)、\s*/,        // "1、" 格式  
+    /^(\d+)）\s*/,        // "1）" 格式
+    /^\((\d+)\)\s*/,      // "(1) " 格式
+    /^第(\d+)[条项]\s*/,   // "第1条" 或 "第1项" 格式
+    /^【(\d+)】\s*/,      // "【1】" 格式
+    /^(\d+):\s*/,         // "1: " 格式
+    /^(\d+)-\s*/,         // "1- " 格式
+  ]
+  
+  for (const pattern of patterns) {
+    const match = title.match(pattern)
+    if (match) {
+      return parseInt(match[1], 10)
+    }
+  }
+  
+  // 如果没有找到序号，返回一个大数值使其排在后面
+  return 999999
+}
+
 // 搜索过滤函数
 export function filterScripts(scripts: any[], searchTerm: string, selectedTags: string[] = []) {
   return scripts.filter(script => {
@@ -86,6 +112,36 @@ export function filterScripts(scripts: any[], searchTerm: string, selectedTags: 
     
     return matchesSearch && matchesTags
   })
+}
+
+// 排序话术函数
+export function sortScripts(scripts: any[], sortBy: string, sortOrder: 'asc' | 'desc') {
+  const sorted = [...scripts].sort((a, b) => {
+    let comparison = 0
+    
+    switch (sortBy) {
+      case 'created_at':
+        comparison = new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+        break
+      
+      case 'copy_count':
+        comparison = a.copy_count - b.copy_count
+        break
+      
+      case 'title_number':
+        const numA = extractTitleNumber(a.title)
+        const numB = extractTitleNumber(b.title)
+        comparison = numA - numB
+        break
+      
+      default:
+        comparison = 0
+    }
+    
+    return sortOrder === 'desc' ? -comparison : comparison
+  })
+  
+  return sorted
 }
 
 // 构建模块树结构

@@ -8,9 +8,10 @@ import { Eye } from 'lucide-react'
 interface ScriptCardProps {
   script: Script
   onView?: (script: Script) => void
+  onCopySuccess?: () => void
 }
 
-export default function ScriptCard({ script, onView }: ScriptCardProps) {
+export default function ScriptCard({ script, onView, onCopySuccess }: ScriptCardProps) {
   return (
     <div className="
       group relative bg-white rounded-2xl p-6 shadow-sm border border-gray-100
@@ -87,6 +88,7 @@ export default function ScriptCard({ script, onView }: ScriptCardProps) {
             scriptId={script.id}
             showText={false}
             className="transition-opacity duration-200"
+            onCopySuccess={onCopySuccess}
           />
         </div>
       </div>
