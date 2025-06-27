@@ -21,6 +21,7 @@ export default function SortSelector({ sortBy, sortOrder, onSortChange }: SortSe
   const [dropdownStyle, setDropdownStyle] = useState<React.CSSProperties>({})
   const [mounted, setMounted] = useState(false)
   const buttonRef = useRef<HTMLButtonElement>(null)
+  const dropdownRef = useRef<HTMLDivElement>(null)
 
   const currentOption = sortOptions.find(option => option.value === sortBy) || sortOptions[0]
 
@@ -67,7 +68,12 @@ export default function SortSelector({ sortBy, sortOrder, onSortChange }: SortSe
   // 事件监听管理
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (buttonRef.current && !buttonRef.current.contains(event.target as Node)) {
+      const target = event.target as Node
+      // 检查点击是否在按钮或下拉菜单内
+      const isInButton = buttonRef.current && buttonRef.current.contains(target)
+      const isInDropdown = dropdownRef.current && dropdownRef.current.contains(target)
+      
+      if (!isInButton && !isInDropdown) {
         setIsOpen(false)
       }
     }
@@ -121,6 +127,7 @@ export default function SortSelector({ sortBy, sortOrder, onSortChange }: SortSe
 
     return createPortal(
       <div 
+        ref={dropdownRef}
         style={dropdownStyle} 
         className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden"
       >

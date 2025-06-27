@@ -443,4 +443,63 @@ const renderDropdown = () => {
 - ✅ SSR渲染无异常
 
 ### 经验总结
-Portal + Fixed定位是解决移动端浮层遮挡问题的最佳实践，适用于所有需要突破容器限制的UI组件。 
+Portal + Fixed定位是解决移动端浮层遮挡问题的最佳实践，适用于所有需要突破容器限制的UI组件。
+
+---
+
+## 2024-12-20 - 修复Portal实现导致的排序选择失效问题
+
+### 问题描述
+使用Portal重构后，发现排序选择功能失效，点击任何排序选项都会自动跳转到热门程度排序。
+
+### 问题分析
+Portal渲染后，下拉菜单的DOM结构发生变化：
+1. **事件冲突**: 下拉菜单通过Portal渲染到`document.body`
+2. **外部点击判断错误**: `handleClickOutside`只检查按钮元素，下拉菜单点击被误认为外部点击
+3. **菜单立即关闭**: 点击选项时菜单立即关闭，选择事件未能正确执行
+
+### 解决方案
+修复外部点击检测逻辑：
+
+#### 1. 添加下拉菜单引用
+```typescript
+const dropdownRef = useRef<HTMLDivElement>(null)
+```
+
+#### 2. 更新外部点击检测
+```typescript
+const handleClickOutside = (event: MouseEvent) => {
+  const target = event.target as Node
+  // 检查点击是否在按钮或下拉菜单内
+  const isInButton = buttonRef.current && buttonRef.current.contains(target)
+  const isInDropdown = dropdownRef.current && dropdownRef.current.contains(target)
+  
+  if (!isInButton && !isInDropdown) {
+    setIsOpen(false)
+  }
+}
+```
+
+#### 3. 绑定下拉菜单引用
+```typescript
+<div 
+  ref={dropdownRef}
+  style={dropdownStyle} 
+  className="..."
+>
+```
+
+### 修复效果
+- ✅ 排序选择功能恢复正常
+- ✅ 点击选项能正确触发排序
+- ✅ 保持Portal带来的遮挡修复效果
+- ✅ 外部点击仍能正常关闭菜单
+
+### 涉及文件
+- `components/SortSelector.tsx` - 修复外部点击检测逻辑
+
+### 技术要点
+Portal组件的事件处理需要特别注意：
+- 渲染到`document.body`的元素不在原DOM树中
+- 外部点击检测需要同时考虑触发元素和Portal内容
+- 使用多个ref分别管理不同DOM元素的引用 
