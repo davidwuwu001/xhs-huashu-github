@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
+import { createPortal } from 'react-dom'
 import { ChevronDown, ArrowUpDown, TrendingUp, Clock, Hash, ArrowUp, ArrowDown } from 'lucide-react'
 
 interface SortSelectorProps {
@@ -17,48 +18,91 @@ const sortOptions = [
 
 export default function SortSelector({ sortBy, sortOrder, onSortChange }: SortSelectorProps) {
   const [isOpen, setIsOpen] = useState(false)
-  const [dropdownPosition, setDropdownPosition] = useState<'bottom' | 'top'>('bottom')
-  const dropdownRef = useRef<HTMLDivElement>(null)
+  const [dropdownStyle, setDropdownStyle] = useState<React.CSSProperties>({})
+  const [mounted, setMounted] = useState(false)
   const buttonRef = useRef<HTMLButtonElement>(null)
 
   const currentOption = sortOptions.find(option => option.value === sortBy) || sortOptions[0]
 
   useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+      if (buttonRef.current && !buttonRef.current.contains(event.target as Node)) {
         setIsOpen(false)
       }
     }
 
-    document.addEventListener('mousedown', handleClickOutside)
-    return () => document.removeEventListener('mousedown', handleClickOutside)
-  }, [])
+    const handleScroll = () => {
+      if (isOpen) {
+        updateDropdownPosition()
+      }
+    }
 
-  // 计算下拉菜单的最佳显示位置
-  const calculateDropdownPosition = () => {
-    if (!buttonRef.current) return 'bottom'
-    
+    const handleResize = () => {
+      if (isOpen) {
+        updateDropdownPosition()
+      }
+    }
+
+    document.addEventListener('mousedown', handleClickOutside)
+    window.addEventListener('scroll', handleScroll, true)
+    window.addEventListener('resize', handleResize)
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+      window.removeEventListener('scroll', handleScroll, true)
+      window.removeEventListener('resize', handleResize)
+    }
+  }, [isOpen])
+
+  const updateDropdownPosition = () => {
+    if (!buttonRef.current) return
+
     const buttonRect = buttonRef.current.getBoundingClientRect()
+    const dropdownWidth = 160 // 40 * 4 = 160px
+    const dropdownHeight = sortOptions.length * 44 + 8 // 每个选项44px高度
+    
+    const viewportWidth = window.innerWidth
     const viewportHeight = window.innerHeight
-    const dropdownHeight = sortOptions.length * 44 + 8 // 每个选项约44px高度 + 边距
     
-    // 检查下方是否有足够空间
-    const spaceBelow = viewportHeight - buttonRect.bottom - 20 // 留20px缓冲
-    const spaceAbove = buttonRect.top - 20 // 留20px缓冲
+    // 计算水平位置 - 右对齐
+    let left = buttonRect.right - dropdownWidth
+    if (left < 8) left = 8 // 最小边距
+    if (left + dropdownWidth > viewportWidth - 8) {
+      left = viewportWidth - dropdownWidth - 8
+    }
+
+    // 计算垂直位置
+    let top = buttonRect.bottom + 4
+    const spaceBelow = viewportHeight - buttonRect.bottom
+    const spaceAbove = buttonRect.top
     
-    // 如果下方空间不足且上方空间充足，则在上方显示
-    if (spaceBelow < dropdownHeight && spaceAbove >= dropdownHeight) {
-      return 'top'
+    // 如果下方空间不足，尝试上方显示
+    if (spaceBelow < dropdownHeight + 20 && spaceAbove > dropdownHeight + 20) {
+      top = buttonRect.top - dropdownHeight - 4
     }
     
-    return 'bottom'
+    // 确保不超出视口
+    if (top < 8) top = 8
+    if (top + dropdownHeight > viewportHeight - 8) {
+      top = viewportHeight - dropdownHeight - 8
+    }
+
+    setDropdownStyle({
+      position: 'fixed',
+      left: `${left}px`,
+      top: `${top}px`,
+      width: `${dropdownWidth}px`,
+      zIndex: 9999,
+    })
   }
 
   const handleToggleDropdown = () => {
     if (!isOpen) {
-      // 打开时计算位置
-      const position = calculateDropdownPosition()
-      setDropdownPosition(position)
+      updateDropdownPosition()
     }
     setIsOpen(!isOpen)
   }
@@ -72,10 +116,40 @@ export default function SortSelector({ sortBy, sortOrder, onSortChange }: SortSe
     onSortChange(sortBy, sortOrder === 'asc' ? 'desc' : 'asc')
   }
 
+  const renderDropdown = () => {
+    if (!isOpen || !mounted) return null
+
+    return createPortal(
+      <div
+        style={dropdownStyle}
+        className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden"
+      >
+        {sortOptions.map((option) => {
+          const Icon = option.icon
+          return (
+            <button
+              key={option.value}
+              onClick={() => handleSortByChange(option.value)}
+              className={`
+                w-full flex items-center gap-2 px-3 py-2.5 text-left text-sm
+                hover:bg-gray-50 transition-colors
+                ${sortBy === option.value ? 'bg-blue-50 text-blue-700' : 'text-gray-700'}
+              `}
+            >
+              <Icon className="w-4 h-4" />
+              {option.label}
+            </button>
+          )
+        })}
+      </div>,
+      document.body
+    )
+  }
+
   return (
     <div className="flex gap-1">
       {/* 排序字段选择 */}
-      <div className="relative" ref={dropdownRef}>
+      <div className="relative">
         <button
           ref={buttonRef}
           onClick={handleToggleDropdown}
@@ -91,31 +165,7 @@ export default function SortSelector({ sortBy, sortOrder, onSortChange }: SortSe
           <ChevronDown className={`w-4 h-4 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
         </button>
 
-        {isOpen && (
-          <div className={`
-            absolute ${dropdownPosition === 'top' ? 'bottom-full mb-1' : 'top-full mt-1'} right-0 
-            w-40 bg-white rounded-xl shadow-lg border border-gray-200
-            z-[9999] overflow-hidden
-          `}>
-            {sortOptions.map((option) => {
-              const Icon = option.icon
-              return (
-                <button
-                  key={option.value}
-                  onClick={() => handleSortByChange(option.value)}
-                  className={`
-                    w-full flex items-center gap-2 px-3 py-2.5 text-left text-sm
-                    hover:bg-gray-50 transition-colors
-                    ${sortBy === option.value ? 'bg-blue-50 text-blue-700' : 'text-gray-700'}
-                  `}
-                >
-                  <Icon className="w-4 h-4" />
-                  {option.label}
-                </button>
-              )
-            })}
-          </div>
-        )}
+        {renderDropdown()}
       </div>
 
       {/* 排序方向切换 */}
