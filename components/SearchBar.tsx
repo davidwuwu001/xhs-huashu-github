@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Search, X, Tag } from 'lucide-react'
 import { generateTagColor } from '@/lib/utils'
 import SortSelector from './SortSelector'
@@ -30,6 +30,8 @@ export default function SearchBar({
 }: SearchBarProps) {
   const [showTagDropdown, setShowTagDropdown] = useState(false)
   const [tagSearchTerm, setTagSearchTerm] = useState('')
+  const [tagDropdownPosition, setTagDropdownPosition] = useState<'bottom' | 'top'>('bottom')
+  const tagButtonRef = useRef<HTMLButtonElement>(null)
 
   // 过滤可用标签
   const filteredTags = availableTags.filter(tag => 
@@ -50,6 +52,35 @@ export default function SearchBar({
     onSearchChange('')
     onTagsChange([])
     setTagSearchTerm('')
+  }
+
+  // 计算标签下拉菜单的最佳显示位置
+  const calculateTagDropdownPosition = () => {
+    if (!tagButtonRef.current) return 'bottom'
+    
+    const buttonRect = tagButtonRef.current.getBoundingClientRect()
+    const viewportHeight = window.innerHeight
+    const dropdownHeight = 300 // 标签下拉菜单最大高度约300px
+    
+    // 检查下方是否有足够空间
+    const spaceBelow = viewportHeight - buttonRect.bottom - 20
+    const spaceAbove = buttonRect.top - 20
+    
+    // 如果下方空间不足且上方空间充足，则在上方显示
+    if (spaceBelow < dropdownHeight && spaceAbove >= dropdownHeight) {
+      return 'top'
+    }
+    
+    return 'bottom'
+  }
+
+  const handleToggleTagDropdown = () => {
+    if (!showTagDropdown) {
+      // 打开时计算位置
+      const position = calculateTagDropdownPosition()
+      setTagDropdownPosition(position)
+    }
+    setShowTagDropdown(!showTagDropdown)
   }
 
   // 点击外部关闭下拉菜单
@@ -136,7 +167,8 @@ export default function SearchBar({
           {availableTags.length > selectedTags.length && (
             <div className="relative tag-dropdown-container">
               <button
-                onClick={() => setShowTagDropdown(!showTagDropdown)}
+                ref={tagButtonRef}
+                onClick={handleToggleTagDropdown}
                 className="
                   inline-flex items-center gap-1 px-2 py-1 rounded-lg text-xs
                   border border-dashed border-gray-300 text-gray-500
@@ -151,10 +183,10 @@ export default function SearchBar({
 
               {/* 标签下拉菜单 */}
               {showTagDropdown && (
-                <div className="
-                  absolute top-full left-0 mt-1 w-64 bg-white rounded-xl shadow-lg border border-gray-200
-                  z-[60] max-h-60 overflow-hidden
-                ">
+                                 <div className={`
+                   absolute ${tagDropdownPosition === 'top' ? 'bottom-full mb-1' : 'top-full mt-1'} left-0 w-64 bg-white rounded-xl shadow-lg border border-gray-200
+                   z-[9999] max-h-60 overflow-hidden
+                 `}>
                   {/* 标签搜索 */}
                   <div className="p-3 border-b border-gray-100">
                     <input

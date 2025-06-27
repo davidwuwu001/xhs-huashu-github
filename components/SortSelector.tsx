@@ -17,7 +17,9 @@ const sortOptions = [
 
 export default function SortSelector({ sortBy, sortOrder, onSortChange }: SortSelectorProps) {
   const [isOpen, setIsOpen] = useState(false)
+  const [dropdownPosition, setDropdownPosition] = useState<'bottom' | 'top'>('bottom')
   const dropdownRef = useRef<HTMLDivElement>(null)
+  const buttonRef = useRef<HTMLButtonElement>(null)
 
   const currentOption = sortOptions.find(option => option.value === sortBy) || sortOptions[0]
 
@@ -31,6 +33,35 @@ export default function SortSelector({ sortBy, sortOrder, onSortChange }: SortSe
     document.addEventListener('mousedown', handleClickOutside)
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [])
+
+  // 计算下拉菜单的最佳显示位置
+  const calculateDropdownPosition = () => {
+    if (!buttonRef.current) return 'bottom'
+    
+    const buttonRect = buttonRef.current.getBoundingClientRect()
+    const viewportHeight = window.innerHeight
+    const dropdownHeight = sortOptions.length * 44 + 8 // 每个选项约44px高度 + 边距
+    
+    // 检查下方是否有足够空间
+    const spaceBelow = viewportHeight - buttonRect.bottom - 20 // 留20px缓冲
+    const spaceAbove = buttonRect.top - 20 // 留20px缓冲
+    
+    // 如果下方空间不足且上方空间充足，则在上方显示
+    if (spaceBelow < dropdownHeight && spaceAbove >= dropdownHeight) {
+      return 'top'
+    }
+    
+    return 'bottom'
+  }
+
+  const handleToggleDropdown = () => {
+    if (!isOpen) {
+      // 打开时计算位置
+      const position = calculateDropdownPosition()
+      setDropdownPosition(position)
+    }
+    setIsOpen(!isOpen)
+  }
 
   const handleSortByChange = (newSortBy: string) => {
     onSortChange(newSortBy, sortOrder)
@@ -46,7 +77,8 @@ export default function SortSelector({ sortBy, sortOrder, onSortChange }: SortSe
       {/* 排序字段选择 */}
       <div className="relative" ref={dropdownRef}>
         <button
-          onClick={() => setIsOpen(!isOpen)}
+          ref={buttonRef}
+          onClick={handleToggleDropdown}
           className="
             flex items-center gap-2 px-3 py-2.5 rounded-xl border border-gray-200
             bg-white hover:bg-gray-50 text-gray-700 text-sm
@@ -60,10 +92,11 @@ export default function SortSelector({ sortBy, sortOrder, onSortChange }: SortSe
         </button>
 
         {isOpen && (
-          <div className="
-            absolute top-full right-0 mt-1 w-40 bg-white rounded-xl shadow-lg border border-gray-200
-            z-[60] overflow-hidden
-          ">
+          <div className={`
+            absolute ${dropdownPosition === 'top' ? 'bottom-full mb-1' : 'top-full mt-1'} right-0 
+            w-40 bg-white rounded-xl shadow-lg border border-gray-200
+            z-[9999] overflow-hidden
+          `}>
             {sortOptions.map((option) => {
               const Icon = option.icon
               return (

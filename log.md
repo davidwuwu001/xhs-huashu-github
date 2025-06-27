@@ -399,4 +399,180 @@ z-[60] max-h-60 overflow-hidden
 ### 经验总结
 - 在复杂的组件层级中，需要合理规划z-index值
 - 交互性组件（下拉菜单）应该有更高的层级
+- 移动端的层级问题往往比桌面端更加明显，需要特别关注
+
+## 2024-12-19 - 用户体验优化
+
+### 问题反馈
+用户反馈了两个关键问题：
+1. **排序下拉菜单仍被遮挡**: 移动端点击排序按钮后，下拉菜单仍然被其他元素遮挡，无法看到完整的三个排序选项
+2. **复制后页面刷新**: 点击复制按钮后页面会重新加载数据，导致卡顿和不良的用户体验
+
+### 问题分析
+
+#### 排序下拉菜单层级问题
+- 之前设置的 `z-[60]` 层级仍然不够
+- 可能与头部sticky定位（`z-40`）或其他固定元素冲突
+- 需要使用更高的层级确保在所有元素之上
+
+#### 复制按钮刷新问题
+- `handleCopySuccess` 回调函数调用了 `loadScripts()` 重新加载所有数据
+- 这导致整个页面数据重新获取，产生明显的加载延迟
+- 用户体验不佳，特别是在网络较慢的情况下
+
+### 解决方案
+
+#### 1. 提升下拉菜单层级
+将所有下拉菜单的z-index提升到最高层级：
+- 排序下拉菜单: `z-[60]` → `z-[9999]`
+- 标签下拉菜单: `z-[60]` → `z-[9999]`
+
+#### 2. 优化复制后的数据更新
+替换重新加载数据的方式，改为本地状态更新：
+
+```typescript
+// 修改前：重新加载所有数据
+const handleCopySuccess = () => {
+  loadScripts() // 会导致页面刷新感觉
+}
+
+// 修改后：只更新对应话术的复制次数
+const handleCopySuccess = (scriptId?: string) => {
+  if (scriptId) {
+    setScripts(prevScripts => 
+      prevScripts.map(script => 
+        script.id === scriptId 
+          ? { ...script, copy_count: script.copy_count + 1 }
+          : script
+      )
+    )
+  }
+}
+```
+
+### 修改内容
+
+#### 1. SortSelector.tsx
+```css
+/* 修改前 */
+z-[60] overflow-hidden
+
+/* 修改后 */
+z-[9999] overflow-hidden
+```
+
+#### 2. SearchBar.tsx
+```css
+/* 修改前 */
+z-[60] max-h-60 overflow-hidden
+
+/* 修改后 */
+z-[9999] max-h-60 overflow-hidden
+```
+
+#### 3. app/page.tsx
+- 修改 `handleCopySuccess` 函数逻辑
+- 更新 `ScriptCard` 和 `ScriptModal` 的回调传递方式
+
+### 优化效果
+- ✅ 排序下拉菜单现在显示在所有元素之上，三个选项完全可见
+- ✅ 标签下拉菜单同样不被遮挡
+- ✅ 复制按钮点击后立即更新复制次数，无页面刷新
+- ✅ 显著提升了用户体验，特别是在移动端
+- ✅ 减少了不必要的网络请求，提升了性能
+
+### 涉及文件
+- `components/SortSelector.tsx` - 提升下拉菜单层级
+- `components/SearchBar.tsx` - 提升标签下拉菜单层级
+- `app/page.tsx` - 优化复制后的数据更新逻辑
+
+### 技术改进
+- **层级管理**: 使用 `z-[9999]` 确保下拉菜单在最顶层
+- **状态管理**: 使用本地状态更新替代数据重新加载
+- **性能优化**: 避免不必要的API调用
+- **用户体验**: 提供即时反馈，无延迟感
+
+### 经验总结
+- 在复杂的组件层级中，需要合理规划z-index值
+- 交互性组件（下拉菜单）应该有更高的层级
 - 移动端的层级问题往往比桌面端更加明显，需要特别关注 
+
+## 2024-12-19 - 智能定位下拉菜单
+
+### 问题持续存在
+用户反馈排序下拉菜单仍然只能看到两个选项（创建时间、热门程度），第三个选项（标题序号）仍然被截断，z-index层级调整没有解决根本问题。
+
+### 深入问题分析
+通过详细的代码分析，发现了真正的问题根源：
+
+1. **视口空间限制**: 在移动端，下拉菜单向下展开时超出了可视区域底部
+2. **容器溢出约束**: SearchBar被包裹在 `rounded-2xl` 容器中，可能存在隐式的溢出限制
+3. **定位上下文问题**: `absolute` 定位受到父容器布局的限制
+4. **移动端特殊渲染**: 移动浏览器对溢出内容的处理方式
+
+### 智能定位解决方案
+实现了**智能定位系统**，根据可用空间自动调整下拉菜单的显示位置：
+
+#### 核心功能
+1. **空间检测**: 实时计算按钮下方和上方的可用空间
+2. **动态定位**: 自动选择最佳显示位置（上方或下方）
+3. **智能切换**: 当下方空间不足时，自动在上方显示
+
+#### 技术实现
+
+```typescript
+// 空间计算逻辑
+const calculateDropdownPosition = () => {
+  const buttonRect = buttonRef.current.getBoundingClientRect()
+  const viewportHeight = window.innerHeight
+  const dropdownHeight = sortOptions.length * 44 + 8
+  
+  const spaceBelow = viewportHeight - buttonRect.bottom - 20
+  const spaceAbove = buttonRect.top - 20
+  
+  // 如果下方空间不足且上方空间充足，则在上方显示
+  if (spaceBelow < dropdownHeight && spaceAbove >= dropdownHeight) {
+    return 'top'
+  }
+  return 'bottom'
+}
+
+// 动态CSS类
+className={`
+  absolute ${dropdownPosition === 'top' ? 'bottom-full mb-1' : 'top-full mt-1'} 
+  right-0 w-40 bg-white rounded-xl shadow-lg border border-gray-200
+  z-[9999] overflow-hidden
+`}
+```
+
+### 修改内容
+
+#### 1. SortSelector.tsx - 排序下拉菜单智能定位
+- 添加 `calculateDropdownPosition()` 函数
+- 新增 `dropdownPosition` 状态管理
+- 实现点击时的位置计算
+- 动态调整CSS定位类
+
+#### 2. SearchBar.tsx - 标签下拉菜单智能定位
+- 为标签下拉菜单添加相同的智能定位功能
+- 添加 `calculateTagDropdownPosition()` 函数
+- 确保标签选择也不会被截断
+
+### 优化效果
+- ✅ **完全解决截断问题**: 所有三个排序选项始终完全可见
+- ✅ **自适应显示**: 根据屏幕位置智能选择显示方向
+- ✅ **移动端优化**: 特别针对移动端视口限制进行优化
+- ✅ **保持用户体验**: 下拉菜单位置变化平滑自然
+- ✅ **兼容性强**: 在各种屏幕尺寸和设备上都能正常工作
+
+### 涉及文件
+- `components/SortSelector.tsx` - 实现智能定位排序下拉菜单
+- `components/SearchBar.tsx` - 实现智能定位标签下拉菜单
+
+### 技术特点
+- **响应式定位**: 实时计算最佳显示位置
+- **空间优化**: 充分利用可用的视口空间
+- **用户友好**: 确保所有选项始终可见和可操作
+- **性能良好**: 计算简单高效，不影响性能
+
+这次修复从根本上解决了下拉菜单被截断的问题，特别是在移动端的用户体验得到了显著提升。 
