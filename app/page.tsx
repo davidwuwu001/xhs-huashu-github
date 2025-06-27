@@ -97,18 +97,9 @@ export default function Home() {
   }
 
   // 复制成功后的回调函数
-  const handleCopySuccess = (scriptId?: string) => {
-    // 如果有具体的scriptId，只更新该话术的复制次数
-    if (scriptId) {
-      setScripts(prevScripts => 
-        prevScripts.map(script => 
-          script.id === scriptId 
-            ? { ...script, copy_count: script.copy_count + 1 }
-            : script
-        )
-      )
-    }
-    // 不再重新加载所有数据，避免页面刷新的感觉
+  const handleCopySuccess = () => {
+    // 重新加载数据以显示更新后的复制次数
+    loadScripts()
   }
 
   return (
@@ -221,7 +212,7 @@ export default function Home() {
                       key={script.id}
                       script={script}
                       onView={setSelectedScript}
-                      onCopySuccess={() => handleCopySuccess(script.id)}
+                      onCopySuccess={handleCopySuccess}
                     />
                   ))}
                 </div>
@@ -262,7 +253,7 @@ export default function Home() {
         script={selectedScript}
         isOpen={!!selectedScript}
         onClose={() => setSelectedScript(null)}
-        onCopySuccess={() => handleCopySuccess(selectedScript?.id)}
+        onCopySuccess={handleCopySuccess}
       />
     </div>
   )

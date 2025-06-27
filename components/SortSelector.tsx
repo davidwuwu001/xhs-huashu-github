@@ -24,10 +24,47 @@ export default function SortSelector({ sortBy, sortOrder, onSortChange }: SortSe
 
   const currentOption = sortOptions.find(option => option.value === sortBy) || sortOptions[0]
 
+  // SSR兼容性处理
   useEffect(() => {
     setMounted(true)
   }, [])
 
+  // 计算下拉菜单位置
+  const updateDropdownPosition = () => {
+    if (!buttonRef.current) return
+    
+    const buttonRect = buttonRef.current.getBoundingClientRect()
+    const dropdownWidth = 160
+    const dropdownHeight = sortOptions.length * 44 + 8
+    
+    // 水平位置 - 右对齐，确保不超出视口
+    let left = buttonRect.right - dropdownWidth
+    if (left < 8) left = 8
+    if (left + dropdownWidth > window.innerWidth - 8) {
+      left = window.innerWidth - dropdownWidth - 8
+    }
+    
+    // 垂直位置 - 智能选择上方或下方
+    let top = buttonRect.bottom + 4
+    const spaceBelow = window.innerHeight - buttonRect.bottom
+    if (spaceBelow < dropdownHeight + 20) {
+      top = buttonRect.top - dropdownHeight - 4
+      // 如果上方空间也不够，优先显示在下方
+      if (top < 8) {
+        top = buttonRect.bottom + 4
+      }
+    }
+    
+    setDropdownStyle({
+      position: 'fixed',
+      left: `${left}px`,
+      top: `${top}px`,
+      width: `${dropdownWidth}px`,
+      zIndex: 9999,
+    })
+  }
+
+  // 事件监听管理
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (buttonRef.current && !buttonRef.current.contains(event.target as Node)) {
@@ -58,54 +95,12 @@ export default function SortSelector({ sortBy, sortOrder, onSortChange }: SortSe
     }
   }, [isOpen])
 
-  const updateDropdownPosition = () => {
-    if (!buttonRef.current) return
-
-    const buttonRect = buttonRef.current.getBoundingClientRect()
-    const dropdownWidth = 160 // 40 * 4 = 160px
-    const dropdownHeight = sortOptions.length * 44 + 8 // 每个选项44px高度
-    
-    const viewportWidth = window.innerWidth
-    const viewportHeight = window.innerHeight
-    
-    // 计算水平位置 - 右对齐
-    let left = buttonRect.right - dropdownWidth
-    if (left < 8) left = 8 // 最小边距
-    if (left + dropdownWidth > viewportWidth - 8) {
-      left = viewportWidth - dropdownWidth - 8
-    }
-
-    // 计算垂直位置
-    let top = buttonRect.bottom + 4
-    const spaceBelow = viewportHeight - buttonRect.bottom
-    const spaceAbove = buttonRect.top
-    
-    // 如果下方空间不足，尝试上方显示
-    if (spaceBelow < dropdownHeight + 20 && spaceAbove > dropdownHeight + 20) {
-      top = buttonRect.top - dropdownHeight - 4
-    }
-    
-    // 确保不超出视口
-    if (top < 8) top = 8
-    if (top + dropdownHeight > viewportHeight - 8) {
-      top = viewportHeight - dropdownHeight - 8
-    }
-
-    setDropdownStyle({
-      position: 'fixed',
-      left: `${left}px`,
-      top: `${top}px`,
-      width: `${dropdownWidth}px`,
-      zIndex: 9999,
-    })
-  }
-
-  const handleToggleDropdown = () => {
-    if (!isOpen) {
+  // 打开下拉菜单时更新位置
+  useEffect(() => {
+    if (isOpen && mounted) {
       updateDropdownPosition()
     }
-    setIsOpen(!isOpen)
-  }
+  }, [isOpen, mounted])
 
   const handleSortByChange = (newSortBy: string) => {
     onSortChange(newSortBy, sortOrder)
@@ -116,12 +111,17 @@ export default function SortSelector({ sortBy, sortOrder, onSortChange }: SortSe
     onSortChange(sortBy, sortOrder === 'asc' ? 'desc' : 'asc')
   }
 
+  const handleButtonClick = () => {
+    setIsOpen(!isOpen)
+  }
+
+  // Portal渲染下拉菜单
   const renderDropdown = () => {
     if (!isOpen || !mounted) return null
 
     return createPortal(
-      <div
-        style={dropdownStyle}
+      <div 
+        style={dropdownStyle} 
         className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden"
       >
         {sortOptions.map((option) => {
@@ -149,24 +149,23 @@ export default function SortSelector({ sortBy, sortOrder, onSortChange }: SortSe
   return (
     <div className="flex gap-1">
       {/* 排序字段选择 */}
-      <div className="relative">
-        <button
-          ref={buttonRef}
-          onClick={handleToggleDropdown}
-          className="
-            flex items-center gap-2 px-3 py-2.5 rounded-xl border border-gray-200
-            bg-white hover:bg-gray-50 text-gray-700 text-sm
-            transition-all duration-200 min-w-0
-          "
-        >
-          <ArrowUpDown className="w-4 h-4 flex-shrink-0" />
-          <span className="hidden sm:inline truncate">排序: {currentOption.label}</span>
-          <span className="sm:hidden text-xs">排序</span>
-          <ChevronDown className={`w-4 h-4 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
-        </button>
+      <button
+        ref={buttonRef}
+        onClick={handleButtonClick}
+        className="
+          flex items-center gap-2 px-3 py-2.5 rounded-xl border border-gray-200
+          bg-white hover:bg-gray-50 text-gray-700 text-sm
+          transition-all duration-200 min-w-0
+        "
+      >
+        <ArrowUpDown className="w-4 h-4 flex-shrink-0" />
+        <span className="hidden sm:inline truncate">排序: {currentOption.label}</span>
+        <span className="sm:hidden text-xs">排序</span>
+        <ChevronDown className={`w-4 h-4 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+      </button>
 
-        {renderDropdown()}
-      </div>
+      {/* Portal渲染的下拉菜单 */}
+      {renderDropdown()}
 
       {/* 排序方向切换 */}
       <button
