@@ -62,7 +62,7 @@ export default function SortSelector({ sortBy, sortOrder, onSortChange }: SortSe
         {isOpen && (
           <div className="
             absolute top-full right-0 mt-1 w-40 bg-white rounded-xl shadow-lg border border-gray-200
-            z-50 overflow-hidden
+            z-[60] overflow-hidden
           ">
             {sortOptions.map((option) => {
               const Icon = option.icon

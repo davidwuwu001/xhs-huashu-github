@@ -320,3 +320,83 @@ await supabase
 - 使用 `min-w-0` 和 `flex-1` 确保搜索框在小屏幕下正确缩放
 - 响应式文字使用 `hidden sm:inline` 和 `sm:hidden` 类
 - 保持所有交互功能完整，只优化视觉布局 
+
+### GitHub上传和Vercel部署准备
+- **操作**: 
+  1. 检查项目状态，发现远程仓库不存在
+  2. 通过GitHub API创建新仓库 `xhs-huashu-github`
+  3. 提交所有代码并推送到GitHub
+  4. 添加 `vercel.json` 配置文件
+  5. 重写 `README.md`，添加一键部署按钮和详细部署指南
+- **最终成果**: 
+  - GitHub仓库：https://github.com/davidwuwu001/xhs-huashu-github
+  - 提供完整的部署文档和环境变量说明
+  - 项目准备就绪，可直接部署
+
+### Vercel环境变量配置问题修复
+- **问题**: 部署时提示"Environment Variable 'NEXT_PUBLIC_SUPABASE_URL' references Secret 'next_public_supabase_url', which does not exist"
+- **原因**: `vercel.json` 配置文件中使用了 `@next_public_supabase_url` 的Secret引用格式，但实际上这个项目应该直接使用环境变量
+- **解决方案**:
+  1. 移除 `vercel.json` 中的环境变量配置部分
+  2. 更新 `README.md` 中的环境变量配置说明，提供详细的Vercel环境变量设置步骤
+  3. 明确说明在Vercel项目设置中手动添加环境变量的方法
+- **技术要点**:
+  - Vercel Secret 引用格式 `@secret_name` 适用于敏感信息
+  - 对于这个项目，直接在Vercel Dashboard中配置环境变量更简单直接
+  - 提供了具体的变量格式示例和获取路径指导
+- **修改文件**: `vercel.json`, `README.md`
+- **验证**: 推送到GitHub，准备重新部署测试 
+
+## 2024-12-19 - 移动端交互问题修复
+
+### 问题描述
+用户反馈在手机网页上点击排序方式后会被话术的弹窗遮挡，影响用户体验。
+
+### 问题分析
+通过代码审查发现z-index层级冲突问题：
+1. **排序下拉菜单**: `SortSelector.tsx` 中设置为 `z-50`
+2. **话术弹窗**: `ScriptModal.tsx` 中设置为 `z-50`
+3. **标签下拉菜单**: `SearchBar.tsx` 中设置为 `z-50`
+
+由于DOM元素的渲染顺序，后渲染的元素会覆盖先渲染的元素，导致下拉菜单被弹窗遮挡。
+
+### 解决方案
+调整z-index层级，确保下拉菜单显示在最顶层：
+- 将排序下拉菜单的z-index从 `z-50` 提升到 `z-[60]`
+- 将标签下拉菜单的z-index从 `z-50` 提升到 `z-[60]`
+- 保持话术弹窗为 `z-50`
+
+### 修改内容
+
+#### 1. SortSelector.tsx
+```css
+/* 修改前 */
+z-50 overflow-hidden
+
+/* 修改后 */
+z-[60] overflow-hidden
+```
+
+#### 2. SearchBar.tsx  
+```css
+/* 修改前 */
+z-50 max-h-60 overflow-hidden
+
+/* 修改后 */
+z-[60] max-h-60 overflow-hidden
+```
+
+### 修复效果
+- ✅ 移动端点击排序按钮，下拉菜单正常显示在最顶层
+- ✅ 移动端点击标签按钮，下拉菜单正常显示在最顶层
+- ✅ 不影响话术弹窗的正常显示
+- ✅ 保持了原有的交互逻辑和视觉效果
+
+### 涉及文件
+- `components/SortSelector.tsx` - 修复排序下拉菜单层级
+- `components/SearchBar.tsx` - 修复标签下拉菜单层级
+
+### 经验总结
+- 在复杂的组件层级中，需要合理规划z-index值
+- 交互性组件（下拉菜单）应该有更高的层级
+- 移动端的层级问题往往比桌面端更加明显，需要特别关注 

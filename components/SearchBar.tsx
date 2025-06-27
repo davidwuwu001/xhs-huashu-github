@@ -153,7 +153,7 @@ export default function SearchBar({
               {showTagDropdown && (
                 <div className="
                   absolute top-full left-0 mt-1 w-64 bg-white rounded-xl shadow-lg border border-gray-200
-                  z-50 max-h-60 overflow-hidden
+                  z-[60] max-h-60 overflow-hidden
                 ">
                   {/* 标签搜索 */}
                   <div className="p-3 border-b border-gray-100">
