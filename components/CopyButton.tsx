@@ -24,9 +24,10 @@ export default function CopyButton({
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState(false)
 
-  const handleCopy = async (e: React.MouseEvent) => {
-    e.stopPropagation()
-    setIsLoading(true)
+const handleCopy = async (e: React.MouseEvent) => {
+  e.preventDefault()
+  e.stopPropagation()
+  setIsLoading(true)
     setError(false)
     
     try {
@@ -69,9 +70,10 @@ export default function CopyButton({
   
   return (
     <button
-      onClick={handleCopy}
-      disabled={isLoading}
-      className={`
+  type="button"
+  onClick={handleCopy}
+  disabled={isLoading}
+  className={`
         inline-flex items-center gap-2 rounded-xl
         font-medium text-sm
         transition-all duration-200 ease-in-out
