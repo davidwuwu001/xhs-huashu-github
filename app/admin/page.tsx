@@ -61,7 +61,7 @@ export default function AdminPage() {
   // 密码验证函数
   const handlePasswordSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    if (password === 'admin123') {
+    if (password === '1212') {
       setIsAuthenticated(true)
       setPasswordError('')
     } else {
